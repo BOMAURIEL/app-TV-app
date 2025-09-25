@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vidking Mobile Player</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      text-align: center;
+      padding: 10px;
+    }
+
+    h1, h2 {
+      font-size: 1.2rem;
+    }
+
+    select, button {
+      margin: 5px 2px;
+      padding: 6px 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+    }
+
+    iframe {
+      margin-top: 15px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 100%;
+      height: 250px; /* default for mobile */
+      border: 0;
+    }
+
+    #resumeList {
+      margin: 15px auto;
+      background: #222;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 600px;
+      text-align: left;
+    }
+
+    #resumeList ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #resumeList li {
+      margin: 5px 0;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #resumeList button {
+      background: #e50914;
+      border: none;
+      padding: 4px 6px;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    #resumeList button:hover {
+      background: #ff3b3b;
+    }
+
+    #messageArea {
+      margin-top: 15px;
+      background: #222;
+      padding: 8px;
+      border-radius: 8px;
+      min-height: 100px;
+      text-align: left;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    @media (min-width: 600px) {
+      iframe {
+        height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Vidking Mobile Player</h1>
+
+<!-- Media selection -->
+<div style="margin-bottom:10px;">
+  <label for="mediaType">Type:</label>
+  <select id="mediaType">
+    <option value="movie">Movie</option>
+    <option value="tv">TV Series</option>
+  </select>
+
+  <label for="mediaSelect">Select:</label>
+  <select id="mediaSelect"></select>
+
+  <label for="seasonSelect">Season:</label>
+  <select id="seasonSelect">
+    <option value="1">1</option>
+    <option value="2">2</option>
+  </select>
+
+  <label for="episodeSelect">Episode:</label>
+  <select id="episodeSelect">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+  </select>
+
+  <button onclick="loadSelected()">Load</button>
+</div>
+
+<!-- Player iframe -->
+<iframe id="tvPlayer" src="" allowfullscreen></iframe>
+
+<!-- Continue watching -->
+<div id="resumeList">
+  <h2>Continue Watching</h2>
+  <ul id="resumeItems">
+    <li>No saved progress yet.</li>
+  </ul>
+</div>
+
+<h2>Player Events</h2>
+<div id="messageArea">Waiting for events...</div>
+
+<script>
+const mediaTypeSelect = document.getElementById("mediaType");
+const mediaSelect = document.getElementById("mediaSelect");
+const seasonSelect = document.getElementById("seasonSelect");
+const episodeSelect = document.getElementById("episodeSelect");
+const player = document.getElementById("tvPlayer");
+const resumeItems = document.getElementById("resumeItems");
+
+// Example library
+const mediaLibrary = {
+  movie: [
+    { title: "Movie 1", tmdbId: 1078605 },
+    { title: "Movie 2", tmdbId: 634649 }
+  ],
+  tv: [
+    { title: "TV 1", tmdbId: 119051 },
+    { title: "TV 2", tmdbId: 1412 }
+  ]
+};
+
+// Populate media select
+function populateMedia() {
+  const type = mediaTypeSelect.value;
+  mediaSelect.innerHTML = "";
+  mediaLibrary[type].forEach(item=>{
+    const opt = document.createElement("option");
+    opt.value = item.tmdbId;
+    opt.text = item.title;
+    mediaSelect.appendChild(opt);
+  });
+
+  if(type === "movie"){
+    seasonSelect.style.display = "none";
+    episodeSelect.style.display = "none";
+  } else {
+    seasonSelect.style.display = "inline-block";
+    episodeSelect.style.display = "inline-block";
+  }
+}
+mediaTypeSelect.addEventListener("change", populateMedia);
+populateMedia();
+
+// Build player URL
+function buildUrl(type, tmdbId, season=1, episode=1){
+  let url = "";
+  let key = "";
+  if(type === "movie"){
+    key = `vidking-progress-${tmdbId}`;
+    const progress = localStorage.getItem(key) || 0;
+    url = `https://www.vidking.net/embed/movie/${tmdbId}?color=ff0000&autoPlay=true&progress=${progress}`;
+  } else {
+    key = `vidking-progress-${tmdbId}-s${season}e${episode}`;
+    const progress = localStorage.getItem(key) || 0;
+    url = `https://www.vidking.net/embed/tv/${tmdbId}/${season}/${episode}?color=ff0000&autoPlay=true&nextEpisode=true&episodeSelector=true&progress=${progress}`;
+  }
+  return url;
+}
+
+// Load selected media
+function loadSelected(){
+  const type = mediaTypeSelect.value;
+  const tmdbId = mediaSelect.value;
+  const season = parseInt(seasonSelect.value);
+  const episode = parseInt(episodeSelect.value);
+  player.src = buildUrl(type, tmdbId, season, episode);
+}
+
+// Save progress
+function saveProgress(type, tmdbId, season, episode, time, duration){
+  let key = type === "movie" ? `vidking-progress-${tmdbId}` : `vidking-progress-${tmdbId}-s${season}e${episode}`;
+  const data = {type, tmdbId, season, episode, time, duration, updated: Date.now()};
+  localStorage.setItem(key, JSON.stringify(data));
+  refreshResumeList();
+}
+
+// Clear finished
+function clearProgress(type, tmdbId, season, episode){
+  let key = type === "movie" ? `vidking-progress-${tmdbId}` : `vidking-progress-${tmdbId}-s${season}e${episode}`;
+  localStorage.removeItem(key);
+  refreshResumeList();
+}
+
+// Refresh resume list
+function refreshResumeList(){
+  resumeItems.innerHTML = "";
+  const items = [];
+  for(let i=0;i<localStorage.length;i++){
+    const key = localStorage.key(i);
+    if(key.startsWith("vidking-progress-")){
+      items.push(JSON.parse(localStorage.getItem(key)));
+    }
+  }
+  if(items.length === 0){
+    resumeItems.innerHTML = "<li>No saved progress yet.</li>";
+    return;
+  }
+  items.sort((a,b)=> b.updated - a.updated);
+  items.forEach(entry=>{
+    const percent = ((entry.time/entry.duration)*100).toFixed(1);
+    const li = document.createElement("li");
+    if(entry.type === "movie"){
+      li.innerHTML = `${mediaLibrary.movie.find(m=>m.tmdbId==entry.tmdbId).title} – ${percent}% 
+        <button onclick="player.src='https://www.vidking.net/embed/movie/${entry.tmdbId}?color=ff0000&autoPlay=true&progress=${entry.time}'">Resume</button>`;
+    } else {
+      li.innerHTML = `${mediaLibrary.tv.find(m=>m.tmdbId==entry.tmdbId).title} S${entry.season}E${entry.episode} – ${percent}% 
+        <button onclick="player.src='https://www.vidking.net/embed/tv/${entry.tmdbId}/${entry.season}/${entry.episode}?color=ff0000&autoPlay=true&nextEpisode=true&episodeSelector=true&progress=${entry.time}'">Resume</button>`;
+    }
+    resumeItems.appendChild(li);
+  });
+}
+
+// Handle player events
+window.addEventListener("message", function(event){
+  try{
+    const data = JSON.parse(event.data);
+    document.querySelector("#messageArea").innerText = JSON.stringify(data,null,2);
+
+    if(data.event === "timeupdate"){
+      const type = data.mediaType === "movie" ? "movie" : "tv";
+      saveProgress(type, data.id, data.season||1, data.episode||1, Math.floor(data.currentTime), data.duration);
+    }
+
+    if(data.event === "ended"){
+      const type = data.mediaType === "movie" ? "movie" : "tv";
+      clearProgress(type, data.id, data.season||1, data.episode||1);
+    }
+
+  }catch(e){
+    console.log("Non-JSON event:", event.data);
+  }
+});
+
+</script>
+
+</body>
+</html>
