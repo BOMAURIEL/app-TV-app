@@ -1,0 +1,118 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #eee;
+}
+
+header {
+  padding: 10px;
+  text-align: center;
+  background: #1c1c1c;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+#searchBar {
+  width: 90%;
+  max-width: 500px;
+  padding: 8px;
+  margin: 10px auto;
+  display: block;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+}
+
+.section-title {
+  margin: 15px 10px 5px;
+  font-size: 1.2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(120px,1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+.card {
+  background: #222;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+.card img {
+  width: 100%;
+  display: block;
+}
+
+.card .title {
+  padding: 5px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.progress-bar {
+  height: 5px;
+  background: #e50914;
+}
+
+#playerContainer {
+  margin: 10px;
+  text-align: center;
+}
+
+iframe {
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  border-radius: 8px;
+  border: none;
+}
+
+.carousel {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px;
+}
+
+.carousel .card {
+  flex: 0 0 auto;
+  width: 120px;
+  margin-right: 10px;
+}
+
+.btn {
+  background: #e50914;
+  border: none;
+  padding: 5px 8px;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  width: 100%;
+  text-align: center;
+}
+
+.btn:hover {
+  background: #ff3b3b;
+}
+
+/* Scrollbar styling for carousel */
+.carousel::-webkit-scrollbar {
+  height: 6px;
+}
+.carousel::-webkit-scrollbar-thumb {
+  background: #e50914;
+  border-radius: 3px;
+}
